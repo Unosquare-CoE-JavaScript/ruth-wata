@@ -351,14 +351,260 @@ Arguably one of the most important pillars of JS, no program is anything useful 
 
 
  
+## Appendix A: Exploring Further
+
+### Values vs. References
+
+*example of values*
+
+<pre>
+    <code>
+        var num = 10
+
+        var newNum = num
+
+        newNum = 20 
+
+        console.log(num) // 10
+        console.log(newNum) // 20
+
+    </code>
+</pre>
+
+
+In the above example, we can see that when num stays the same whilst newNum has changed to 20. This is because when we assign newNum to num, we are essentially copying num. The value held by num is a primitive value, and they are always assigned/passed as value copies. 
+
+*example of reference*
+<pre>
+    <code>
+        const names = ['sam', 'bob', 'petra']
+
+        const names2 = names
+
+        names[2] = 'pedro'
+
+        console.log(names[2]) // pedro
+
+
+    </code>
+</pre>
+
+In the example above, names are an array. Both name and name2 reference the same array. So any changes to that array will result in changes for both names and names2. If we were to console.log(names2) we would get the updated 'pedro' as the third element.
+
+### So Many Function Forms
+
+*example of different forms a function can take*
+<pre>
+    <code>
+        // types of functions 
+
+        // generator declarationfunction
+        function *two() { .. }
+
+        // async function declaration
+        async function three() { .. }
+
+        // async generator function declaration
+        async function *four() { .. }
+
+        // named function export declaration (ES6 modules)
+        exportfunctionfive() { .. }
+
+        // IIFE
+        (function(){ .. })();
+        (function namedIIFE(){ .. })();
+
+        // asynchronous IIFE
+        (async function(){ .. })();
+        (async function namedAIIFE(){ .. })();
+
+        // arrow function expressions
+        var f;
+        f = () =>42;
+        f = x => x * 2;
+        f = (x) => x * 2;
+        f = (x, y) => x * y;
+        f = x => ({ x: x * 2 });
+        f = x => { return x * 2; };
+        f = async x => {
+            vary = await doSomethingAsync(x);
+            return y * 2;
+        };
+        someOperation( x => x * 2);
+        // ..
+
+
+    </code>
+</pre>
+
+### Coercive Conditional Comparison
+
+This refers to conditional expressions needed to perform comparisons to make decisions.
+
+
+### Prototypal "Classes"
+This pattern is now strongly discouraged, in favour of using ES6's class mechanism. 
+
+*example of the new syntax shown below*
+<pre>
+    <code>
+        class Classroom {
+            constructor() {
+                // ..
+            }
+
+            welcome() {
+                console.log("Welcome, students!");
+            }
+        }
+        var mathClass = new Classroom();
+        mathClass.welcome(); // Welcome, students!
+
+    </code>
+</pre>
+
+
+## Appendix B: Practice, Practice, Practice!
+
+### Practicing Comparisons
+
+<pre>
+    <code>
+        const dayStart = "07:30";
+        const dayEnd = "17:45";
+
+        function scheduleMeeting(startTime, durationMinutes) {
+            // ..TODO..
+            startTime = Number(startTime.replace(':', '')) 
+            const totalMeetingTime = startTime + durationMinutes
+            const endDay = Number(dayEnd.replace(':', ''))
+            const startDay = Number(dayStart.replace(':', ''))
+            return totalMeetingTime <= endDay && startTime >= startDay
+
+        }
+            
+
+        scheduleMeeting("7:00", 15);    // false
+        scheduleMeeting("07:15", 30);   // false
+        scheduleMeeting("7:30", 30);    // true
+        scheduleMeeting("11:30", 60);   // true
+        scheduleMeeting("17:00", 45);   // true
+        scheduleMeeting("17:30", 30);   // false
+        scheduleMeeting("18:00", 15);   // false
+
+    </code>
+</pre>
 
 
 
+### Practicing Closure
+
+<pre>
+    <code>
+        function range(start, end) { 
+            // ..TODO..
+
+            start = Number(start) || 0
+
+            if(end === undefined ){
+                return function getEnd(end) {
+                    return getRange(start, end)
+                }
+            }else {
+                end = Number(end) || 0;
+                return getRange(start, end)
+            }
+            
+            function getRange(start, end) {
+                let arr = []
+                for(let i = start; i <= end; i++){
+                    arr.push(i)
+                }
+                return arr
+            }
+        }
+
+    </code>
+</pre>
 
 
 
+### Practicing Prototypes
+
+<pre>
+    <code>
+        
+        function randMax(max) { 
+            return Math.trunc(1E9 * Math.random()) % max;
+        }
+
+        var reel = {
+            symbols: [
+                "X","Y","Z","W","$","*","<","@"
+            ],
+            spin() {
+                if(this.position == null) {
+                    this.position = randMax(this.symbols.length - 1);
+                }
+                this.position = (this.position + 100 + randMax(100)) % this.symbols.length;
+            },
+            display() {
+                if(this.position == null) {
+                    this.position = randMax(this.symbols.length - 1);
+                }
+                return this.symbols[this.position];
+            }
+        };
+        var slotMachine = {
+            reels:[
+            // this slot machine needs 3 separate reels
+            // hint: Object.create(..)
+            Object.creaate(reel), 
+            Object.creaate(reel),
+            Object.creaate(reel)
+
+            
+            ],
+            spin() {
+                this.reels.forEach(function spinReel(reel){
+                    reel.spin();
+                }
+                );
+            },
+            display() {
+                // loop the reels - 
+                let sym = []
+                for (let i = 0; i <= 3; i++){
+                    let line = this.reels.map(reel => {
+                        const slot = Object.create(reel);
+                        slot.position = (
+                            reel.symbols.length +
+                            reel.position +
+                            i
+                        ) % reel.display.call(slot);
+                    })
+                    lines.push(line.join(' | '))
+                }
+                
+                return lines.join('\n')
 
 
 
+            }
+        };
 
- 
+        slotMachine.spin();
+        slotMachine.display();
+        // < | @ | *
+        // @ | X | <
+        // X | Y | @
+
+        slotMachine.spin();
+        slotMachine.display()
+        // Z | X | W
+        // W | Y | $
+        // $ | Z | *
+
+
+    </code>
+</pre>
