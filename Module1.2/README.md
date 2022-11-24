@@ -186,13 +186,297 @@ A program is likely to be composed of multiple JS files. There are 3 main ways t
 ### Where Exactly is this Global Scope?
 Different environments handle the global scope differently.
 
-> Bowser "Window"
-> > This stores the variable declared globally within the windows object. And can be accessed with window.myVariable. a browser-hosted JS Environment has the purest global scope behaviour.
+#### Bowser "Window"
+This stores the variable declared globally within the windows object. And can be accessed with window.myVariable. a browser-hosted JS Environment has the purest global scope behaviour.
 
 
-### Global This
+* DOM Globals: a DOM element with an id attribute automatically creates a global variable that references it. It is advised against its usage.
 
-### Globally Aware
+* What's in the (Window) Name: window represents a global object. Storing properties that have a specific name of 'name' in it, stores them as a pre-defined getter/setter, insisting on its value being a string value. Other variable names do not behave like this.
+
+* Web Workers: they are web platform extensions on top of browser-JS behaviour, which allows a JS file to run a completely separate thread (operating system-wise)from the thread that is running the main JS program. They are completely separate programs They do not have access to the DOM. Some web APIs are made available to them - navigator. Instead of using window.to reference it, you can self. var and functions also create mirrored props on the global object.
+
+#### Developer Tools Console/REPL
+These are optimised to be convenient and useful to developers but they are not suitable environments to determine or verify explicit and nuanced behaviours of an actual JS program context. Some differences in behaviour can be:
+
+* Behaviour of the global scope
+* Hoisting
+* Block-scoping declarators when used in the outermost scope.
+
+#### ES Modules
+Anything declared on the out-most scope doesn't reside in the global scope as expected. Instead, they are module-wide or "module-global". This module-wide doesn't reference an object and cannot be treated as such. It is a descendant of the global scope. From this, we can see that ESM encourages the minimisation of reliance on the global scope.
+
+
+#### Node
+Node treats every file as a module (ES module or CommonJS module). Its effect is the same as The ESM - that the top-level is never actually the global scope. There are several defined "globals" such as required, these are not actual globals but instead are interjected into the scope of every module. You can define an actual variable using the "global" keyword, much like the "windows", it references the real global scope.
 
 ## Chapter 5: The (Not So) Secret Lifestyle of Variables
+
+### Hoisting 
+Hoisting is the process which makes variables visible from the beginning so they can be safely used. 
+
+* For function declarations can be hoisted, their name identifiers are registered at the top of its scope, and it is auto-initialised to that function's reference. They can thus be called throughout the entire scope. Function expressions cannot be hoisted. When declaring a function expression with var, they hold a default initialisation of undefined. Doing so will result in an undefined error or "XYZ is not a function".
+
+* Variables declared with var can be hoisted - they hold a default value of undefined. 
+
+*example of different ways to hoist*
+
+<pre>
+
+    <code>
+       
+
+    </code>
+</pre>
+
+### Unintialised Variables (aka TDZ)
+It stands for Temporal Dead Zone. It is a time window where a variable exists but is still uninitialised, and therefore cannot be accessed. var variables also technically have TDZ, but it's zero in length and thus unobservable to our programs! Only let and const have observable TDZ.
+
+Variables declared with let/const do hoist. They however do not automatically initialise at the beginning of the scope
+
+
+## Chapter 6: Limiting Scope Exposure
+
+### Least Exposure
+"The Principle of Least Privilege"(POLP) and its variation "Least Exposure"(POLE) are fundamental disciplines, that are typically applied to software security. POLE advises defaulting to exposing the bare minimum necessary, keeping everything as private as possible, rather than using the global scope. This prevents things such as:
+
+* Naming Collisions
+* Unexpected Behaviour
+* Unintended Dependency
+
+### Hiding in Plain (Function) Scope
+We can use techniques such as memoisation to encapsulate any variable and function to a local namespace. There is removing the variables from the local scope. We can go even further by setting the function to a variable (function expression) and using an Immediately Invoked Function Expression (IIFE). This defines a function that is later immediately invoked.
+
+*example of memoisation *
+
+<pre>
+
+    <code>
+        var factorial = (function hideTheCache() {
+        var cache = {};
+        function factorial(x) {
+            if(x < 2) return1;
+            if(!(x in cache)) {
+                cache[x] = x * factorial(x - 1);
+            }
+            return cache[x];
+        }
+        returnfactorial;
+        })();
+
+    </code>
+</pre>
+
+*example of unnamed IIFE* 
+
+<pre>
+
+    <code>
+        // outer scope
+
+        (function() {
+            // inner hidden scope
+        })();
+
+        // more outer scope
+
+
+    </code>
+</pre>
+
+IIFE should not be used in cases where the code you need to wrap a scope around has return, this, break, or continue.
+
+### Scoping with Blocks
+We can declare variables within nested blocks. Using the {...} will act as a block, but not necessarily as a scope. This only becomes a scope if necessary. For example, object literals, and classes are not considered blocks.
+
+*example of a block with let *
+<pre>
+
+    <code>
+       {
+            // not necessarily a scope (yet)
+
+            // ..
+
+            // now we know the block needs to be a scope
+            let thisIsNowAScope = true;
+            
+            for(let i = 0; i < 5 ; i++) {
+                // this is also a scope, activated each
+                // iteration
+                if(i % 2 == 0) {
+                    // this is just a block, not a scope
+                    console.log(i);
+                }
+            }
+        }
+
+    </code>
+</pre>
+
+It is advised to use these scoping blocks to follow POLE, always define the smallest block for each variable.
+
+Here the author gives his opinion about using var for variables declared at the top of the function that the function will need for the return result and let for block-scope and also using the {...} block. He highlights by doing so you let the reader know that the var variable is function scoped and by using let you communicate that the variable is block-scoped. 
+
+### What's the Catch?
+try and catch blocks behave a bit differently. Var variables declared inside these blocks can be accessed, because they're attached to the outer function/global scope. However, from ES2019, catch blocks can now have an optional declaration. If the declaration is omitted the catch block is no longer a scope, it's still a block, though.
+
+## Chapter 7: Using Closures
+
+### See the closure
+Closures are the behaviour of functions and only functions, objects cannot have closure. For it to be observed a function must be invoked - specifically in a different branch of the scope chain from where it was originally defined. It is associated with an instance of a function. 
+
+It is not a snapshot but rather a live link, that preserves access to the full variable itself. This allows the closed variable to be updated and reassigned if needed. By closing over a variable we can keep using that variable (read and write) as long as that function reference exists in the program, and from anywhere we want to invoke that function. Closure is purely variable-oriented. A definition can be found below:
+
+> " Closure is observed when a function uses variable(s) from outer scope(s) even while running in a scope where those variable(s) wouldn't be accessible "
+
+Closure must be:
+* Must be a function involved
+* Must reference at least one variable from an outer scope
+* Must be invoked in a different branch of the scope chain from the variable(s)
+
+### The Closure Lifecycle and Garbage Collection(GC)
+When you have many functions closed over a single variable it is good practice to discard that final function when not needed anymore and as such the variable is gone. This helps to improve efficiency and performance in programs.  
+
+
+Additionally, when variables in outer functions are present but never closed over we can note that in some browser environments these variables are simply GC-ed and are not kept alive. Some browsers can behave differently however and still preserve them until the final function is discarded. A good practice, especially when the variable holds a large data is to set that variable to null. Seen below:
+
+*example of resetting unused live variables*
+<pre>
+
+    <code>
+       function manageStudentGrades(studentRecords) {
+            var grades = studentRecords.map(getGrade);
+
+            // unset `studentRecords` to prevent unwanted
+            // memory retention in the closure
+            studentRecords = null;
+
+            return addGrade;
+            // ..
+        }
+
+
+    </code>
+</pre>
+
+
+## Chapter 8: The Module Pattern
+
+### Encapsulation and Least Exposure(POLE)
+Encapsulation is the grouping of information(data) and their behaviour(functions). Encapsulation can be seen in all aspects of programs, from file organisation to code organisation. This grouping system allows us to separate things in private and public, essentially limiting access to certain parts, or allowing access to the whole program.
+
+### What is a Module?
+Modules are collections of data and functions. These collections must be divided into private details and publicly accessible details. So if a collection contains only functions and no data, then that isn't a module. And likewise, if a collection contains data and methods, but they all can be accessible from the outside - that is also not a module.
+
+* Classic Module 
+
+*example of modules*
+<pre>
+
+    <code>
+       function defineStudent() {
+            var records = [
+                { id:14, name:"Kyle", grade:86},
+                { id:73, name:"Suzy", grade:87},
+                { id:112, name:"Frank", grade:75},
+                { id:6, name:"Sarah", grade:91}
+            ];
+            var publicAPI={
+                getName
+            };
+            returnpublicAPI;
+            
+            // ************************
+            function getName(studentID) { 
+                var student = records.find(
+                    student => student.id == studentID
+                    );
+                    returnstudent.name;
+                }
+            }
+            
+        var fullTime = defineStudent();
+        fullTime.getName(73);           // Suzy
+
+
+    </code>
+</pre>
+
+
+* Node CommonJS Modules
+These are file-based: one module per file. 
+
+*example of node module*
+<pre>
+
+    <code>
+       module.exports.getName = getName;
+
+        // ************************
+
+        var records = [
+            { id:14, name:"Kyle", grade:86},
+            { id:73, name:"Suzy", grade:87},
+            { id:112, name:"Frank", grade:75},
+            { id:6, name:"Sarah", grade:91}
+        ];
+
+        function getName(studentID) {
+            var student = records.find(
+                student => student.id == studentID
+                );
+                return student.name;
+        }
+
+
+    </code>
+</pre>
+
+* Modern ES Modules (ESM)
+This shares several similarities with CommonJS. It is file-based, and module instances are singletons, everything is private by default. These files are however assumed to be in strict mode, this cannot be turned off. 
+
+*example of ESM*
+<pre>
+
+    <code>
+       var records = [ 
+        { id:14, name:"Kyle", grade:86},
+        { id:73, name:"Suzy", grade:87},
+        { id:112, name:"Frank", grade:75},
+        { id:6, name:"Sarah", grade:91}
+        ];
+
+        export default function getName(studentID) {
+            var student = records.find(
+                student => student.id == studentID
+                );
+            returnstudent.name;
+        }
+
+    </code>
+</pre>
+
+## Appendix A: Exploring Further
+
+### Parameter Scope
+The parameter of functions also has its scope. But its usage is not advised since it can cause unnecessary behaviours in the value a variable holds.
+
+### Anonymous vs. Named Functions
+
+* Explicit or Inferred Names?
+Here the author gives his opinion about the importance of explicitly giving a function its own. He argues that by doing this you reduce the 
+of confusion when debugging and you only see "anonymous" next to errors. 
+
+* Who am I!? 
+Without a lexical name identifier, the function lacks a way to refer to itself. This is important for things like recursion and event handling.
+
+* Names as Descriptors
+Leaving off names makes it harder for the reader to know what your function does, and what its purpose is.
+
+
+
+
+
+
 
