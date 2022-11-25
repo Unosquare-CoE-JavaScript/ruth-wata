@@ -475,6 +475,69 @@ Without a lexical name identifier, the function lacks a way to refer to itself. 
 Leaving off names makes it harder for the reader to know what your function does, and what its purpose is.
 
 
+## Appendix B: Practice Practice Practice!!
+
+<pre>
+
+    <code>
+       function isPrime(v) {
+    
+            for (let i = 2; i <= Math.sqrt(v); i++){
+               if(v % i === 0) return false
+
+            }
+
+            return true
+        }
+
+    </code>
+</pre>
+
+
+<pre>
+
+    <code>        
+        function toggle(...strs) {
+            // ..
+            let arr = [...arguments]
+            let count = 0
+
+            function toggleWord(){
+                if(arr.length === 1 ) return arr[0]
+                let i = 0
+                if(!arr[count] ) {
+                    count = 0
+                    i = count
+                }
+                else{
+                     i = count 
+                    count++
+                }
+
+
+                return arr[i]
+
+            }
+
+
+
+            return toggleWord
+        }
+
+
+
+        var hello = toggle("hello");
+        var onOff = toggle("on","off");
+        var speed = toggle("slow","medium","fast");
+
+        hello();// "hello"
+        hello();// "hello"
+
+        onOff();// "on"
+        onOff();// "off"
+        onOff();// "on" 
+    </code>
+</pre>
 
 
 
