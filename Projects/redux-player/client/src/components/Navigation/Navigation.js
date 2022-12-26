@@ -1,8 +1,8 @@
-import Logout from '../../Auth/Logout/Logout';
+import Logout from '../Logout/Logout';
 import { useState } from 'react';
 import ToggleNav from './ToggleNav';
 
-const hamburger = require('../../../imgs/nav.png');
+const hamburger = require('../../imgs/nav.png');
 
 export default function Navigation() {
   const [showNav, setShowNav] = useState(false);
@@ -22,7 +22,7 @@ export default function Navigation() {
           <li className="mr-6">
             {!showNav && (
               <button
-                className="text-blue-500 hover:text-blue-800"
+                className="text-blue-500 hover:text-blue-800 mt-2 ml-2"
                 onClick={handleToggleNav}
               >
                 <img src={hamburger} alt="open nav bar icon" />
@@ -46,7 +46,7 @@ export default function Navigation() {
               />
             </div>
           </li>
-          <li className="mr-6">
+          <li className="mt-2 mr-2">
             <Logout />
           </li>
         </ul>

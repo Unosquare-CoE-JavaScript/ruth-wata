@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const usersSlice = createSlice({
   name: 'users',
   initialState: {
-    token: '',
+    token: localStorage.getItem('token'),
     isLoggedIn: localStorage.getItem('token') ? true : false,
     currentUser: '',
   },
@@ -12,7 +12,7 @@ const usersSlice = createSlice({
       state.isLoggedIn = true;
     },
     addToken: (state, action) => {
-      state.token = localStorage.getItem('token');
+      state.token = action.payload;
     },
     addUser: (state, action) => {
       state.currentUser = action.payload;

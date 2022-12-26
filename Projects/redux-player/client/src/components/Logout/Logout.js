@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { usersActions } from '../../../store/usersSlice';
+import { usersActions } from '../../store/usersSlice';
 
 export default function Logout() {
   const dispatch = useDispatch();

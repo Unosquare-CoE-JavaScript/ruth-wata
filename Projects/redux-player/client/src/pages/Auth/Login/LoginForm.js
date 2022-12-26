@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { usersActions } from '../../../store/usersSlice';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,8 +17,6 @@ export default function LoginForm() {
   });
 
   const [errMesg, setErrMsg] = useState('');
-  const user = useSelector((state) => state);
-  console.log(user);
   //   const users = useSelector((state) => state.users);
 
   const handlleLoginClick = async (e) => {
@@ -42,7 +40,11 @@ export default function LoginForm() {
       const data = await res.json();
 
       localStorage.setItem('token', data.token);
-      dispatch(usersActions.addToken());
+      dispatch(
+        usersActions.addToken({
+          payload: localStorage.getItem('token'),
+        })
+      );
       dispatch(
         usersActions.addUser({
           payload: data.name,
@@ -75,8 +77,6 @@ export default function LoginForm() {
       password: '',
     });
   };
-
-  console.log(enteredUser.email);
 
   return (
     <div className="relative flex flex-col justify-center min-h-screen overflow-hidden">
