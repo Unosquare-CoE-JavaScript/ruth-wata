@@ -1,10 +1,10 @@
 import LoginForm from './pages/Auth/Login/LoginForm';
 import { Route, Routes, BrowserRouter } from 'react-router-dom';
-import { Fragment } from 'react';
-// import HomePage from './pages/HomePage';
+import HomePage from './pages/HomePage';
 import RequiredAuth from './requiredAuth/RequiredAuth';
 import RegisterForm from './pages/Auth/Register/RegisterForm';
 import AddCustomerReview from './pages/AddCustomerReview';
+import Layout from './components/Layout';
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
         <Route path="/signup" element={<RegisterForm />} exact />
 
         <Route element={<RequiredAuth />}>
-          {/* <Route path="/" element={<HomePage />} exact /> */}
+          <Route path="/" element={<HomePage />} exact />
           <Route path="/add" element={<AddCustomerReview />} exact />
         </Route>
       </Routes>

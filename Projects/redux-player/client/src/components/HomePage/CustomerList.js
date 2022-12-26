@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ReviewItem from './ReviewItem';
 
 export default function CustomerList() {
   const [customerData, setCustomerData] = useState([]);
@@ -11,7 +12,7 @@ export default function CustomerList() {
       };
       try {
         const res = await fetch(
-          'http://localhost:2121/api/cutomers/find',
+          'http://localhost:2121/api/customers/find',
           config
         );
         const data = await res.json();
@@ -20,6 +21,8 @@ export default function CustomerList() {
           setEmptyDataMsg('You have no customer review. Go to add');
         }
         console.log(data);
+
+        setCustomerData(data);
       } catch (error) {
         console.log('error, unable to retrieved data');
       }
@@ -29,12 +32,25 @@ export default function CustomerList() {
   }, []);
 
   return (
-    <div>
+    <div
+      className="
+            flex
+            justify-center
+            mt-10
+            "
+    >
       {emptyDataMsg ? (
         <p>{emptyDataMsg}</p>
       ) : (
-        <ul>
-          <li>Review 1</li>
+        <ul className=" w-3/4 flex flex-col items-center gap-4">
+          {customerData.map((data) => (
+            <ReviewItem
+              key={data._id}
+              name={data.customerName}
+              review={data.review}
+              stars={data.stars}
+            />
+          ))}
         </ul>
       )}
     </div>
