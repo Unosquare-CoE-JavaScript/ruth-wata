@@ -21,7 +21,6 @@ export default function LoginForm() {
 
   const [errMesg, setErrMsg] = useState('');
   const { fn } = useAuth();
-  //   const users = useSelector((state) => state.users);
 
   const handlleLoginClick = async (e) => {
     e.preventDefault();
@@ -32,10 +31,7 @@ export default function LoginForm() {
 
       setErrMsg('Success!');
 
-      const expirationTime = new Date(
-        new Date().getTime() + +data.expiresIn * 1000
-      );
-      authCxt.login(data.token, expirationTime.toISOString());
+      authCxt.login(data.token);
       console.log(data);
       navigate(home);
     };

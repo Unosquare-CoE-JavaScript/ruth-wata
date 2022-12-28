@@ -14,11 +14,9 @@ export default function useHttp() {
 
         if (!res.ok) {
           setErrMsg('Incorrect User Name/Password combination');
-          console.log(res);
           throw new Error('Oops something went wrong!');
         }
         const data = await res.json();
-        console.log(data);
         applyData(data);
       } catch (err) {
         console.log(err);

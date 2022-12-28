@@ -16,7 +16,7 @@ export default function Navigation() {
   };
 
   return (
-    <header>
+    <header role="navigation">
       <nav>
         <ul className="flex justify-between">
           <li className="mr-6">

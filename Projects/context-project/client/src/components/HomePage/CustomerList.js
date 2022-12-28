@@ -1,11 +1,13 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useCallback } from 'react';
 import ReviewItem from './ReviewItem';
 import useHttp from '../../hooks/useHttp';
 import AuthContext from '../../store/auth-context';
 
-export default function CustomerList() {
+export default function CustomerList({ findByName }) {
   const [customerData, setCustomerData] = useState([]);
   const [emptyDataMsg, setEmptyDataMsg] = useState('');
+
+  console.log(findByName);
   const { fn } = useHttp();
 
   const { token } = useContext(AuthContext);
@@ -35,6 +37,29 @@ export default function CustomerList() {
     fn(requestConfig, applyData, errorHandling);
   }, [fn]);
 
+  const printReviews = customerData.map((data) => (
+    <ReviewItem
+      key={data._id}
+      name={data.customerName}
+      review={data.review}
+      stars={data.stars}
+    />
+  ));
+
+  const filterResult = customerData
+    .filter((data) => data.customerName === findByName)
+    .map((data) => (
+      <ReviewItem
+        key={data._id}
+        name={data.customerName}
+        review={data.review}
+        stars={data.stars}
+      />
+    ));
+
+  console.log(customerData);
+  console.log(findByName);
+
   return (
     <div
       className="
@@ -43,20 +68,11 @@ export default function CustomerList() {
             mt-10
             "
     >
-      {emptyDataMsg ? (
-        <p>{emptyDataMsg}</p>
-      ) : (
-        <ul className=" w-3/4 flex flex-col items-center gap-4">
-          {customerData.map((data) => (
-            <ReviewItem
-              key={data._id}
-              name={data.customerName}
-              review={data.review}
-              stars={data.stars}
-            />
-          ))}
-        </ul>
-      )}
+      {emptyDataMsg && <p>{emptyDataMsg}</p>}
+
+      <ul className=" w-3/4 flex flex-col items-center gap-4">
+        {findByName ? filterResult : printReviews}
+      </ul>
     </div>
   );
 }
