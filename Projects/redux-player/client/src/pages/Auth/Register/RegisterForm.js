@@ -1,56 +1,74 @@
 import { Link } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import useAuth from '../../../hooks/useHttp';
+import { useDispatch } from 'react-redux';
 import { usersActions } from '../../../store/usersSlice';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 export default function RegisterForm() {
+  const [enteredUser, setEnteredUser] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+  const [errMesg, setErrMsg] = useState('');
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const users = useSelector((state) => state.users);
   const home = '/';
 
-  const email = useRef();
-  const password = useRef();
-  const name = useRef();
+  const { fn } = useAuth();
 
   const handlleLoginClick = (e) => {
-    (async () => {
-      e.preventDefault();
+    const applyData = (data) => {
+      localStorage.setItem('token', data.token);
+      dispatch(
+        usersActions.addToken({
+          payload: localStorage.getItem('token'),
+        })
+      );
+      dispatch(
+        usersActions.addUser({
+          payload: data.name,
+        })
+      );
+      setErrMsg('Success!');
+      navigate(home);
+    };
 
-      const enteredEmail = email.current.value;
-      const enteredPass = password.current.value;
-      const enteredName = name.current.value;
-
-      try {
-        const res = await fetch('http://localhost:2121/api/users/register', {
-          method: 'POST',
-          body: JSON.stringify({
-            name: enteredName,
-            email: enteredEmail,
-            password: enteredPass,
-          }),
-          headers: { 'Content-Type': 'application/json' },
-        });
-        const data = await res.json();
-
-        console.log(data);
-        dispatch(
-          usersActions.addToken({
-            payload: data.token,
-          })
-        );
-
-        dispatch(
-          usersActions.addUser({
-            payload: data.name,
-          })
-        );
-        navigate(home);
-      } catch (err) {
-        console.log(err);
+    const errorHandling = () => {
+      if (
+        !enteredUser.email.length &&
+        !enteredUser.password.length &&
+        enteredUser.name === ''
+      ) {
+        setErrMsg('Please enter name, email, and password!');
+      } else if (!enteredUser.email.length && !enteredUser.password.length) {
+        setErrMsg('You have not entered a email or password!');
+      } else if (!enteredUser.email.length) {
+        setErrMsg('You have not entered an email');
+      } else if (!enteredUser.password.length) {
+        setErrMsg('You have not entered a password!');
+      } else {
+        setErrMsg('Incorrect User Name/Password combination');
       }
-    })();
+    };
+
+    e.preventDefault();
+
+    const requestConfig = {
+      url: `http://localhost:2121/api/users/register`,
+      method: 'POST',
+      body: {
+        name: enteredUser.name,
+        email: enteredUser.email,
+        password: enteredUser.password,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+    fn(requestConfig, applyData, errorHandling);
   };
 
   return (
@@ -62,40 +80,58 @@ export default function RegisterForm() {
         <form className="mt-6">
           <div className="mb-2">
             <label
-              for="name"
+              htmlFor="name"
               className="block text-sm font-semibold text-gray-800"
             >
               Name
             </label>
             <input
-              type="name"
-              ref={name}
+              type="text"
+              value={enteredUser.name}
+              onChange={(e) =>
+                setEnteredUser((prevState) => ({
+                  ...prevState,
+                  name: e.target.value,
+                }))
+              }
               className="block w-full px-4 py-2 mt-2 text-purple-700 bg-white border rounded-md focus:border-purple-400 focus:ring-purple-300 focus:outline-none focus:ring focus:ring-opacity-40"
             />
           </div>
           <div className="mb-2">
             <label
-              for="email"
+              htmlFor="email"
               className="block text-sm font-semibold text-gray-800"
             >
               Email
             </label>
             <input
               type="email"
-              ref={email}
+              value={enteredUser.email}
+              onChange={(e) =>
+                setEnteredUser((prevState) => ({
+                  ...prevState,
+                  email: e.target.value,
+                }))
+              }
               className="block w-full px-4 py-2 mt-2 text-purple-700 bg-white border rounded-md focus:border-purple-400 focus:ring-purple-300 focus:outline-none focus:ring focus:ring-opacity-40"
             />
           </div>
           <div className="mb-2">
             <label
-              for="password"
+              htmlFor="password"
               className="block text-sm font-semibold text-gray-800"
             >
               Password
             </label>
             <input
               type="password"
-              ref={password}
+              value={enteredUser.password}
+              onChange={(e) =>
+                setEnteredUser((prevState) => ({
+                  ...prevState,
+                  password: e.target.value,
+                }))
+              }
               className="block w-full px-4 py-2 mt-2 text-purple-700 bg-white border rounded-md focus:border-purple-400 focus:ring-purple-300 focus:outline-none focus:ring focus:ring-opacity-40"
             />
           </div>
@@ -111,19 +147,28 @@ export default function RegisterForm() {
               type="submit"
               onClick={handlleLoginClick}
             >
-              Login
+              Signup
             </button>
           </div>
         </form>
 
+        {!!errMesg.length && (
+          <p
+            className="mt-8 text-xs font-light text-center text-gray-700"
+            id="error-message"
+            data-testid="error-message"
+          >
+            {errMesg}
+          </p>
+        )}
         <p className="mt-8 text-xs font-light text-center text-gray-700">
           {' '}
-          Already have an account ?{' '}
+          {!errMesg.length && <>Don't have an account? </>}
           <Link
             to="/login"
             className="font-medium text-purple-600 hover:underline"
           >
-            Login
+            login
           </Link>
         </p>
       </div>

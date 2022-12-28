@@ -1,35 +1,40 @@
 import { useState, useEffect } from 'react';
 import ReviewItem from './ReviewItem';
+import useHttp from '../../hooks/useHttp';
 
 export default function CustomerList() {
   const [customerData, setCustomerData] = useState([]);
   const [emptyDataMsg, setEmptyDataMsg] = useState('');
+  const { fn } = useHttp();
+
   useEffect(() => {
-    const retrievedCustomerData = async () => {
-      const token = localStorage.getItem('token');
-      const config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
-      try {
-        const res = await fetch(
-          'http://localhost:2121/api/customers/find',
-          config
-        );
-        const data = await res.json();
-
-        if (data.length === 0) {
-          setEmptyDataMsg('You have no customer review. Go to add');
-        }
-        console.log(data);
-
-        setCustomerData(data);
-      } catch (error) {
-        console.log('error, unable to retrieved data');
-      }
+    const token = localStorage.getItem('token');
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
     };
 
-    retrievedCustomerData();
-  }, []);
+    const requestConfig = {
+      url: 'http://localhost:2121/api/customers/find',
+      headers: config,
+    };
+
+    const applyData = (data) => {
+      if (data.length === 0) {
+        setEmptyDataMsg('You have no customer review. Go to add');
+      }
+      console.log(data);
+
+      setCustomerData(data);
+    };
+
+    const errorHandling = () => {
+      console.log('error, unable to retrieved data');
+    };
+
+    fn(requestConfig, applyData, errorHandling);
+  }, [fn]);
+
+  console.log(customerData);
 
   return (
     <div

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { usersActions } from '../../../store/usersSlice';
 import { useNavigate } from 'react-router-dom';
+import useAuth from '../../../hooks/useHttp';
 
 let loginAttempt = 0;
 
@@ -16,29 +17,28 @@ export default function LoginForm() {
     password: '',
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const [errMesg, setErrMsg] = useState('');
+  const { fn } = useAuth();
   //   const users = useSelector((state) => state.users);
+
+  const calculateRemainingTIme = (expirationTime) => {
+    // gets time in milliseconds
+
+    const currentTime = new Date().getTime();
+    const adjExpirationTime = new Date(expirationTime).getTime();
+
+    const remainingDuration = adjExpirationTime - currentTime;
+
+    return remainingDuration;
+  };
 
   const handlleLoginClick = async (e) => {
     e.preventDefault();
 
-    try {
-      const res = await fetch('http://localhost:2121/api/users/login', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: enteredUser.email,
-          password: enteredUser.password,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!res.ok) {
-        setErrMsg('Incorrect User Name/Password combination');
-
-        throw new Error('Oops something went wrong!');
-      }
-      const data = await res.json();
-
+    const applyData = (data) => {
+      setIsLoading(false);
       localStorage.setItem('token', data.token);
       dispatch(
         usersActions.addToken({
@@ -52,8 +52,10 @@ export default function LoginForm() {
       );
       setErrMsg('Success!');
       navigate(home);
-    } catch (err) {
-      console.log(err);
+    };
+
+    const errorHandling = () => {
+      setIsLoading(false);
       if (loginAttempt === 3) {
         setErrMsg(
           'Your account has been locked. Please contact your Administrator'
@@ -71,7 +73,20 @@ export default function LoginForm() {
         setEnteredUser('Incorrect User Name/Password combination');
         loginAttempt += 1;
       }
-    }
+    };
+
+    const requestConfig = {
+      url: 'http://localhost:2121/api/users/login',
+      method: 'POST',
+      body: {
+        email: enteredUser.email,
+        password: enteredUser.password,
+      },
+      headers: { 'Content-Type': 'application/json' },
+    };
+
+    fn(requestConfig, applyData, errorHandling, setIsLoading);
+
     setEnteredUser({
       email: '',
       password: '',
@@ -162,6 +177,8 @@ export default function LoginForm() {
             {errMesg}
           </p>
         )}
+
+        {isLoading && <p>loading</p>}
         <p className="mt-8 text-xs font-light text-center text-gray-700">
           {' '}
           {!errMesg.length && <>Don't have an account? </>}
